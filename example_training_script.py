@@ -2,9 +2,12 @@ import pandas as pd
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
 from datasets import Dataset
 from tokenizer.my_tokenizers import SMILES_SPE_Tokenizer
+import torch
+torch.cuda.empty_cache()
 
 # Load the data
-data = pd.concat('clustered_data/all_clusters.csv')
+# data = pd.concat('clustered_data/all_clusters.csv')
+data = pd.read_csv('clustered_data/all_clusters.csv')
 
 train_df = data[data['cluster'] != 1]
 test_df = data[data['cluster'] == 1]
@@ -38,13 +41,14 @@ test_dataset = test_dataset.map(preprocess_function, batched=True)
 training_args = TrainingArguments(
     output_dir='./results',           # Output directory
     num_train_epochs=10,              # Number of training epochs
-    per_device_train_batch_size=16,   # Batch size for training
-    per_device_eval_batch_size=16,    # Batch size for evaluation
+    per_device_train_batch_size=4,   # Batch size for training
+    per_device_eval_batch_size=4,    # Batch size for evaluation
     warmup_steps=0,                   # Number of warmup steps
     weight_decay=0.01,                # Strength of weight decay
     logging_dir='./logs',             # Directory for storing logs
     logging_steps=10,                 # Log every 10 steps
-    evaluation_strategy="epoch",      # Evaluate every epoch
+    eval_strategy="epoch",      # Evaluate every epoch
+    fp16=True,
 )
 
 # Initialize the Trainer
